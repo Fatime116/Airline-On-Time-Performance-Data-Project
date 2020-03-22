@@ -1,0 +1,349 @@
+---
+title: "Airline On-Time Performance Data"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(Lahman)
+library(nycflights13)
+library(skimr)
+```
+##Read the.csv files :
+
+```{r message=FALSE}
+Calfornia201801<- read_csv(
+  file="CA Jan.csv")
+Calfornia201802<- read_csv(
+  file="CA Feb.csv")
+Calfornia201803<- read_csv(
+  file="CA March.csv")
+Calfornia201804<- read_csv(
+  file="CA April.csv")
+Calfornia201805<- read_csv(file="CA May.csv")
+Calfornia201806<- read_csv(file="CA JUNE.csv")
+Calfornia201807<- read_csv(file="CA JULY.csv")
+```
+##2.Extract the flights that departed from the Bay Area. Include all flights departing from San Francisco, Oakland, and San Jose and find the flights  in January 2018 .
+
+##After extracting all the flights  departing from SFO ,OAK,SJC , there were total of 22606 flights in January 2018 . There were 14135	flights from "SFO" , 4277	flights from "SJC" and 4194 flights from "OAK" .
+```{r}
+Calfornia201801
+Calfornia201801 %>% filter(ORIGIN == "SFO" | ORIGIN == "SJC" | ORIGIN == "OAK" ) %>%
+    count()
+
+```
+14135	flights from "SFO"
+```{r}
+Calfornia201801
+Calfornia201801 %>% filter (ORIGIN == "SFO" )%>%
+  count()
+  
+
+```
+
+4277	flights from "SJC"
+```{r}
+Calfornia201801
+Calfornia201801 %>% filter (ORIGIN == "SJC" )%>%
+  count()
+```
+
+4194 flights from "OAK" .
+```{r}
+Calfornia201801
+Calfornia201801 %>% filter (ORIGIN == "OAK" )%>%
+  count()
+```
+##3.Compare the variables that are available in the full dataset with the variables in the nycflgihts13 data set. Make a table of the variables that are in both datasets, with a description of each variable. Report the intersection of the variables.
+I have 13 shared variables in my sfoflights18 data set .
+
+ Shared Variables Names  | Variable Description
+-------------------------| -------------
+YEAR   | Year of flight
+MONTH  | month of flight
+DAY    | day of the flight
+TAIL_NUM| tail number which identifies the plane
+ORIGIN | Origin Airport 
+DEST  |Destination Airport
+DEPTIME| Actual Departure Time (local time: hhmm)
+DEPDELAY|Difference in minutes between scheduled and actual departure time. Early departures show negative numbers.
+ARRTIME |Actual Arrival Time (local time: hhmm)
+ARRDELAY |Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers.
+AIRTIME |Flight Time, in Minutes
+FLIGHTS |Number of Flights
+DISTANCE |Distance between airports (miles)
+
+
+##4.Find out What new variables I now also have and make a table of the variables that are in the new dataset (that could also be downloaded from the website), with a description of each variable. 
+ I have another 10 more new variables ,that were different from nycflights13 ,in my new sfoflights18 data set .
+
+New Variables Name  | Variable Description 
+------------- | -------------
+FLIGHTDATE  | Flight Date (yyyymmdd)
+Flight_Number_Reporting_Airline	  | Flight Number
+OriginAirportID	|Origin Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.
+OriginAirportSeqID |Origin Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time. Airport attributes, such as airport name or coordinates, may change over time.
+OriginCityName	|Origin Airport, City Name
+OriginStateName	|Origin Airport, State Name
+DestAirportID|	Destination Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.
+DestAirportSeqID|	Destination Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time. Airport attributes, such as airport name or coordinates, may change over time.
+DestCityName|	Destination Airport, City Name
+DestStateName	|Destination Airport, State Name
+
+
+
+
+##4.2
+before doing an overall analysis for 2018 data , we need to merge the data . we use bind_rows()function to bind the available months table .
+```{r}
+
+Calfornia2018 <- bind_rows( Calfornia201801 , Calfornia201802, Calfornia201803, Calfornia201804,Calfornia201805, Calfornia201806, Calfornia201807)
+```
+
+The month with the highest proportion of cancelled flights is month == 3, March .  March has a highest number of cancelations with 560  .  
+month == 2,February had the lowest cancellation rate with 184,
+since we have the data only from 1 to 7 months , there is no obvious seasonal pattern .
+```{r}
+
+Calfornia2018 %>% filter(ORIGIN == "SFO" | ORIGIN == "SJC" | ORIGIN == "OAK" ) %>%
+  select(MONTH, ARR_DELAY) %>%
+  group_by(MONTH) %>%
+  skim()
+```
+Tail number N633VA plane travelled the most times from SFO in 2018 ,Tail number 337NV plane travelled the most times from OAK in 2018 and Tail number N188SY plane travelled the most times from SSJC in 2018.
+```{r}
+Calfornia2018 %>% filter ( ORIGIN == "SFO") %>%
+ group_by(TAIL_NUM) %>%
+  count()%>%
+  arrange(desc(n))
+```
+```{r}
+Calfornia2018 %>% filter( TAIL_NUM == "N633VA") %>%
+  group_by(MONTH) %>%
+  tally() %>%
+  ggplot(aes(x = MONTH, y = n)) +
+  geom_point() +
+  geom_line()
+```
+
+
+Tail number 337NV plane travelled the most times from OAK in 2018.
+```{r}
+Calfornia2018 %>% filter ( ORIGIN == "OAK") %>%
+ group_by(TAIL_NUM) %>%
+  count()%>%
+  arrange(desc(n))
+```
+```{r}
+Calfornia2018 %>% filter( TAIL_NUM == "337NV") %>%
+  group_by(MONTH) %>%
+  tally() %>%
+  ggplot(aes(x = MONTH, y = n)) +
+  geom_point() +
+  geom_line()
+```
+Tail number N188SY plane travelled the most times from SSJC in 2018.
+
+```{r}
+Calfornia2018 %>% filter ( ORIGIN == "SJC") %>%
+ group_by(TAIL_NUM) %>%
+  count()%>%
+  arrange(desc(n))
+```
+
+
+```{r}
+Calfornia2018 %>% filter( TAIL_NUM == "N188SY") %>%
+  group_by(MONTH) %>%
+  tally() %>%
+  ggplot(aes(x = MONTH, y = n)) +
+  geom_point() +
+  geom_line()
+```
+**Answer to 4.4:**
+
+Total of 4,114 airplanes that flew from SFO ,OAK ,SJC are included in plane table . 1701 of airplanes from SFO , 1388 of airplanes from SJC and 1025 of airplanes from OAK  seperately .
+
+```{r}
+Calfornia2018 %>% head(1)
+planes %>% head(1)
+planes
+planes2 <- planes %>% rename( YEAR = year  )%>% 
+  rename( TAIL_NUM =tailnum )
+
+planes2
+
+
+planes2 %>% left_join(Calfornia2018, by = c("TAIL_NUM" = "TAIL_NUM")) %>%
+  filter(ORIGIN == "SFO" | ORIGIN == "SJC" | ORIGIN == "OAK" )%>%
+  group_by(TAIL_NUM,ORIGIN) %>%
+  count()
+
+```
+1701 of airplanes from SFO are included in the planes table.
+
+```{r}
+Calfornia2018 %>% head(1)
+planes %>% head(1)
+planes2 <- planes %>% rename( YEAR = year  )%>% 
+  rename( TAIL_NUM =tailnum )
+
+planes2 %>% left_join(Calfornia2018, by = c("TAIL_NUM" = "TAIL_NUM")) %>%
+  filter(ORIGIN == "SFO"  )%>%
+  group_by(TAIL_NUM,ORIGIN) %>%
+  count()
+
+```
+1388 of airplanes from SJC are included in the planes table.
+```{r}
+Calfornia2018 %>% head(1)
+planes %>% head(1)
+planes2 <- planes %>% rename( YEAR = year  )%>% 
+  rename( TAIL_NUM =tailnum )
+
+planes2 %>% left_join(Calfornia2018, by = c("TAIL_NUM" = "TAIL_NUM")) %>%
+  filter(ORIGIN == "SJC"  )%>%
+  group_by(TAIL_NUM,ORIGIN) %>%
+  count()
+
+```
+1025 of airplanes from OAK are included in the planes table.
+```{r}
+Calfornia2018 %>% head(1)
+planes %>% head(1)
+planes2 <- planes %>% rename( YEAR = year  )%>% 
+  rename( TAIL_NUM =tailnum )
+
+planes2 %>% left_join(Calfornia2018, by = c("TAIL_NUM" = "TAIL_NUM")) %>%
+  filter(ORIGIN == "OAK"  )%>%
+  group_by(TAIL_NUM,ORIGIN) %>%
+  count()
+```
+
+#for my second part of project , i used the Violations data set in the mdsr package contains information regarding the out- come of health inspections of restaurants in New York City.
+It is a data frame with 480,621 observations on the following 16 variables.
+
+```{r}
+library(mdsr)
+```
+
+```{r}
+Violations
+```
+##2.What new variables do you now also have. Make a table of the variables that are in the new dataset with a description of each variable.
+
+**Answer :**In Violation data set I have 16 variables , below is variable name with its description .
+
+Variable name  | variable discription
+------------- | -------------
+camis   | unique identifier
+dba     |full name doing business as
+boro   | borough of New York
+building| building name
+street |street address
+zipcode| zipcode
+phone |phone number
+inspection_date |inspection date
+action| action taken
+violation_code| violation code
+score |inspection score
+grade |inspection grade
+grade_date |grade date
+record_date |recording date
+inspection_type |inspect type
+cuisine_code |cuisine code
+
+##3. How many cuisine are graded with A ,B ,C ?
+
+**Answer :**
+There were 162362 cuisines graded with A , 40121 cuisines graded with B and 11501 graded with C .
+```{r}
+  Violations %>%filter(grade=="A") %>%
+  group_by(grade)%>%
+ count()
+      
+```
+
+```{r}
+  Violations %>%filter(grade=="C") %>%
+  group_by(grade)%>%
+ count()
+      
+```
+```{r}
+  Violations %>%filter(grade=="B") %>%
+  group_by(grade)%>%
+ count()
+      
+```
+
+##4. which zipcode had the highest inspection score ?and which zipcode had the lowest inspection score ?
+zipcode number 10022 had the highest inspection score that is 156 and zipcode  number 10165 had the lowest inspection score that is -2 . 
+
+```{r}
+  Violations %>% select( zipcode , score ) %>%
+  group_by(zipcode)%>%
+ summarize( n=n(), score_max=max(score, na.rm = TRUE) )%>%
+  arrange(desc(score_max))
+  
+
+
+```
+```{r}
+  Violations %>% select( zipcode , score ) %>%
+  group_by(zipcode)%>%
+ summarize( n=n(), score_min=min(score, na.rm = TRUE) )%>%
+  arrange((score_min))
+  
+
+
+```
+##5. #. Of the cuisines with grade of A and B, what proportion of these cuisines are between the score of 20 or more  and less than 40 ? 
+
+**Answer:** 
+11.31 % of score which is from 20 to 40 
+
+```{r}
+Violations%>% filter(grade == "A" |grade == "B" ) %>%
+  summarize(n=n(), mean( score >= 20& score < 40 ))
+  
+```
+
+##6. Which dba(full name doing business as) had the highest number of grade with A ?  
+
+**Answer:** 
+DUNKIN' DONUTS is the highest number of grade with A which is 2936 
+```{r}
+Violations %>% 
+  group_by(dba,grade) %>% 
+  count() %>% 
+  arrange(desc(n)) 
+```
+
+##7.What was the mean score of the cuisine?  What was the mean score of the cuisine that is graded with A?  What was the mean score of the cuisine that is graded with B?What was the mean score of the cuisine that is graded with C ?
+**Answer:** 
+The  mean score of cuisines was 20.042, the mean score of cuisines that was graded by A is 9.799 ,the mean score of cuisines that was graded by B is 20.569 and the mean score of cuisines that was graded by C is 36.987 .
+```{r}
+Violations %>% select(score) %>%
+  summarize(n=n(),  score_mean=mean(score, na.rm=TRUE))
+```
+```{r}
+Violations%>% select(grade, score) %>% 
+  group_by(grade) %>%
+  summarize(score_mean=mean(score, na.rm=TRUE))
+```
+##8.What Type of grade more?  
+**Answer:** 
+grade type with A more than other grade type .
+```{r}
+Violations%>% 
+  group_by(grade) %>%
+ summarise(n=n())
+```
+
+
+
+
+
